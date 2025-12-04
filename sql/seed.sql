@@ -26,7 +26,12 @@ INSERT INTO category (category_id, category_name, parent_category_id) VALUES
     (3, '티켓', NULL),
     (4, '스마트폰', 1),
     (5, '노트북', 1),
-    (6, 'TV', 2)
+    (6, 'TV', 2),
+    (7, '기타', NULL),
+    (8, '패션/의류', NULL),
+    (9, '생활용품', NULL),
+    (10, '도서/문구', NULL),
+    (11, '스포츠/레저', NULL)
 ON CONFLICT (category_id) DO NOTHING;
 
 
