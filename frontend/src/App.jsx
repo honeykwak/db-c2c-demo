@@ -24,6 +24,7 @@ function ItemsList({ filters, onFiltersChange }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState([]);
 
   const params = useMemo(
     () => ({
@@ -53,6 +54,19 @@ function ItemsList({ filters, onFiltersChange }) {
     load();
   }, [params]);
 
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const cats = await fetchCategories();
+        setCategories(cats);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err);
+      }
+    }
+    loadCategories();
+  }, []);
+
   return (
     <div className="panel">
       <h2>상품 목록</h2>
@@ -65,9 +79,7 @@ function ItemsList({ filters, onFiltersChange }) {
             onFiltersChange({ ...filters, search: e.target.value })
           }
         />
-        <input
-          type="number"
-          placeholder="카테고리 ID"
+        <select
           value={filters.categoryId || ''}
           onChange={(e) =>
             onFiltersChange({
@@ -75,7 +87,14 @@ function ItemsList({ filters, onFiltersChange }) {
               categoryId: e.target.value ? Number(e.target.value) : null,
             })
           }
-        />
+        >
+          <option value="">카테고리 전체</option>
+          {categories.map((c) => (
+            <option key={c.category_id} value={c.category_id}>
+              {c.category_id}. {c.category_name}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           placeholder="이벤트 옵션 ID"
