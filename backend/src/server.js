@@ -6,6 +6,10 @@ const categoriesRouter = require('./routes/categories');
 const eventsRouter = require('./routes/events');
 const productsRouter = require('./routes/products');
 const itemsRouter = require('./routes/items');
+const usersRouter = require('./routes/users');
+const chatRouter = require('./routes/chat');
+const transactionsRouter = require('./routes/transactions');
+const wishlistRouter = require('./routes/wishlist');
 
 const app = express();
 
@@ -18,6 +22,10 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/items', itemsRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/chat', chatRouter);
+app.use('/api/transactions', transactionsRouter);
+app.use('/api/wishlist', wishlistRouter);
 
 // 헬스 체크용
 app.get('/health', (req, res) => {

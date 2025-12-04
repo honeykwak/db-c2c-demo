@@ -100,7 +100,7 @@ INSERT INTO item (item_id, seller_id, title, price, std_id, category_id) VALUES
     (1, 1, '(티켓) 흠뻑쇼 서울 R석 A구역 팝니다', 180000, NULL, 3),
     (2, 1, '(티켓) 흠뻑쇼 서울 S석 팝니다',        150000, NULL, 3),
     (3, 1, '(SKU) 갤럭시 Z플립5 민트색 A급',       750000, 2,    4),
-    (4, 1, '(일반) 직접 만든 손수건',                5000, NULL, NULL)
+    (4, 1, '(일반) 직접 만든 손수건',                5000, NULL, 1)
 ON CONFLICT (item_id) DO NOTHING;
 
 
@@ -136,26 +136,26 @@ INSERT INTO ticket_details (item_id, event_option_id, seat_info, original_price)
 ON CONFLICT (item_id) DO NOTHING;
 
 
--- 자동 생성 TicketDetails (item_id 5 ~ 204, 총 200개)
+-- 자동 생성 TicketDetails (티켓 아이템만: g % 3 = 0인 것만)
 -- event_option_id 는 10,11,12를 순환
 -- seat_info 는 grade/sector/row/number 를 규칙적으로 생성
 -- original_price 는 항상 price 보다 충분히 높게 설정하여 트리거 통과
 INSERT INTO ticket_details (item_id, event_option_id, seat_info, original_price)
 SELECT
     g                                                   AS item_id,
-    10 + ((g - 5) % 3)                                  AS event_option_id,
+    10 + ((g / 3) % 3)                                  AS event_option_id,
     jsonb_build_object(
-        'grade',  CASE ((g - 5) % 3)
+        'grade',  CASE ((g / 3) % 3)
                       WHEN 0 THEN 'R'
                       WHEN 1 THEN 'S'
                       ELSE 'A'
                   END,
-        'sector', chr(65 + ((g - 5) % 4)),              -- 'A' ~ 'D'
-        'row',   1 + ((g - 5) % 30),
-        'number',1 + ((g - 5) % 50)
+        'sector', chr(65 + ((g / 3) % 4)),              -- 'A' ~ 'D'
+        'row',   1 + ((g / 3) % 30),
+        'number',1 + ((g / 3) % 50)
     )                                                   AS seat_info,
     100000 + (g * 100)                                  AS original_price
-FROM generate_series(5, 204) AS g
+FROM generate_series(6, 1004, 3) AS g  -- g % 3 = 0 인 것만 (6, 9, 12, ...)
 ON CONFLICT (item_id) DO NOTHING;
 
 

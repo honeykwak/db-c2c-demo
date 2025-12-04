@@ -57,6 +57,20 @@ function buildItemsFilterQuery(query) {
     whereClauses.push(`td.seat_info ->> 'sector' = $${idx}`);
   }
 
+  // type: 'ticket' or 'product'
+  if (query.type === 'ticket') {
+    whereClauses.push(`td.event_option_id IS NOT NULL`);
+  } else if (query.type === 'product') {
+    whereClauses.push(`td.event_option_id IS NULL`);
+  }
+
+  // status: 'ON_SALE', 'RESERVED', 'SOLD'
+  if (query.status && ['ON_SALE', 'RESERVED', 'SOLD'].includes(query.status)) {
+    params.push(query.status);
+    const idx = params.length;
+    whereClauses.push(`i.status = $${idx}`);
+  }
+
   const whereSql =
     whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
@@ -66,10 +80,26 @@ function buildItemsFilterQuery(query) {
 // GET /api/items
 // - 기본: 모든 Item
 // - ?search=, ?category=, ?event_option_id=, ?seat_sector=
+// - ?page=1&limit=20 (페이지네이션)
 router.get('/', async (req, res) => {
   const { whereSql, params } = buildItemsFilterQuery(req.query);
 
-  const sql = `
+  // 페이지네이션 파라미터
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const offset = (page - 1) * limit;
+
+  // 전체 개수 쿼리
+  const countSql = `
+    SELECT COUNT(*) as total
+    FROM item i
+    LEFT JOIN standard_product sp ON i.std_id = sp.std_id
+    LEFT JOIN ticket_details td ON i.item_id = td.item_id
+    ${whereSql}
+  `;
+
+  // 데이터 쿼리
+  const dataSql = `
     SELECT
       i.item_id,
       i.title,
@@ -89,17 +119,102 @@ router.get('/', async (req, res) => {
     LEFT JOIN ticket_details td
       ON i.item_id = td.item_id
     ${whereSql}
-    ORDER BY i.item_id
-    LIMIT 200;
+    ORDER BY i.item_id DESC
+    LIMIT $${params.length + 1} OFFSET $${params.length + 2};
   `;
 
   try {
-    const result = await db.query(sql, params);
-    res.json(result.rows);
+    const [countResult, dataResult] = await Promise.all([
+      db.query(countSql, params),
+      db.query(dataSql, [...params, limit, offset]),
+    ]);
+
+    const total = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      items: dataResult.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore: page < totalPages,
+      },
+    });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error fetching items', err);
     res.status(500).json({ error: 'Failed to fetch items' });
+  }
+});
+
+// GET /api/items/:id - 아이템 상세 조회
+router.get('/:id', async (req, res) => {
+  const itemId = Number(req.params.id);
+  if (!Number.isInteger(itemId)) {
+    return res.status(400).json({ error: 'Invalid item id' });
+  }
+
+  try {
+    const result = await db.query(
+      `SELECT
+        i.*,
+        u.username as seller_name,
+        sp.product_code, sp.model_name, sp.brand_name, sp.specs,
+        c.category_name,
+        td.event_option_id, td.seat_info, td.original_price,
+        e.event_id, e.event_name, e.artist_name,
+        eo.venue, eo.event_datetime
+      FROM item i
+      JOIN users u ON i.seller_id = u.user_id
+      LEFT JOIN standard_product sp ON i.std_id = sp.std_id
+      LEFT JOIN category c ON i.category_id = c.category_id
+      LEFT JOIN ticket_details td ON i.item_id = td.item_id
+      LEFT JOIN event_option eo ON td.event_option_id = eo.event_option_id
+      LEFT JOIN event e ON eo.event_id = e.event_id
+      WHERE i.item_id = $1`,
+      [itemId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching item', err);
+    return res.status(500).json({ error: 'Failed to fetch item' });
+  }
+});
+
+// PATCH /api/items/:id/status - 아이템 상태 변경
+router.patch('/:id/status', async (req, res) => {
+  const itemId = Number(req.params.id);
+  const { status } = req.body;
+
+  if (!Number.isInteger(itemId)) {
+    return res.status(400).json({ error: 'Invalid item id' });
+  }
+
+  if (!['ON_SALE', 'RESERVED', 'SOLD'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
+  try {
+    const result = await db.query(
+      `UPDATE item SET status = $1 WHERE item_id = $2 RETURNING *`,
+      [status, itemId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating item status', err);
+    return res.status(500).json({ error: 'Failed to update item status' });
   }
 });
 
