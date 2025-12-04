@@ -32,6 +32,8 @@ function ItemsList({ filters, onFiltersChange }) {
       category: filters.categoryId || undefined,
       event_option_id: filters.eventOptionId || undefined,
       seat_sector: filters.seatSector || undefined,
+      seat_row: filters.seatRow || undefined,
+      seat_number: filters.seatNumber || undefined,
     }),
     [filters],
   );
@@ -112,6 +114,28 @@ function ItemsList({ filters, onFiltersChange }) {
           value={filters.seatSector}
           onChange={(e) =>
             onFiltersChange({ ...filters, seatSector: e.target.value })
+          }
+        />
+        <input
+          type="number"
+          placeholder="좌석 열 (예: 10)"
+          value={filters.seatRow || ''}
+          onChange={(e) =>
+            onFiltersChange({
+              ...filters,
+              seatRow: e.target.value ? Number(e.target.value) : null,
+            })
+          }
+        />
+        <input
+          type="number"
+          placeholder="좌석 번호 (예: 5)"
+          value={filters.seatNumber || ''}
+          onChange={(e) =>
+            onFiltersChange({
+              ...filters,
+              seatNumber: e.target.value ? Number(e.target.value) : null,
+            })
           }
         />
       </div>
@@ -499,6 +523,8 @@ export default function App() {
     categoryId: null,
     eventOptionId: null,
     seatSector: '',
+    seatRow: null,
+    seatNumber: null,
   });
 
   return (

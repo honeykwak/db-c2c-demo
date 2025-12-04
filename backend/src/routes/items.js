@@ -41,7 +41,7 @@ function buildItemsFilterQuery(query) {
     }
   }
 
-  // event_option_id + seat_sector (JSONB)
+  // event_option_id + seat filters (JSONB)
   if (query.event_option_id) {
     const eventOptionId = Number(query.event_option_id);
     if (Number.isInteger(eventOptionId)) {
@@ -57,6 +57,28 @@ function buildItemsFilterQuery(query) {
     whereClauses.push(`td.seat_info ->> 'sector' = $${idx}`);
   }
 
+  if (query.seat_row) {
+    const seatRow = Number(query.seat_row);
+    if (Number.isInteger(seatRow)) {
+      params.push(seatRow);
+      const idx = params.length;
+      whereClauses.push(
+        `(td.seat_info ->> 'row')::int = $${idx}`,
+      );
+    }
+  }
+
+  if (query.seat_number) {
+    const seatNumber = Number(query.seat_number);
+    if (Number.isInteger(seatNumber)) {
+      params.push(seatNumber);
+      const idx = params.length;
+      whereClauses.push(
+        `(td.seat_info ->> 'number')::int = $${idx}`,
+      );
+    }
+  }
+
   const whereSql =
     whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
@@ -65,7 +87,7 @@ function buildItemsFilterQuery(query) {
 
 // GET /api/items
 // - 기본: 모든 Item
-// - ?search=, ?category=, ?event_option_id=, ?seat_sector=
+// - ?search=, ?category=, ?event_option_id=, ?seat_sector=, ?seat_row=, ?seat_number=
 router.get('/', async (req, res) => {
   const { whereSql, params } = buildItemsFilterQuery(req.query);
 
