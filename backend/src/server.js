@@ -10,7 +10,17 @@ const itemsRouter = require('./routes/items');
 const app = express();
 
 // 미들웨어
+// CORS: 로컬에서는 전체 허용, 배포 환경에서는 CORS_ORIGIN으로 제한 가능
+const allowedOrigin = process.env.CORS_ORIGIN;
+if (allowedOrigin) {
+  app.use(
+    cors({
+      origin: allowedOrigin,
+    }),
+  );
+} else {
 app.use(cors());
+}
 app.use(express.json());
 
 // 라우트

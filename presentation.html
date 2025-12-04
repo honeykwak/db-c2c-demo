@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PostgreSQL 기반 C2C DB 데모 - 설명용 페이지</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        color: #111827;
+        background: #f3f4f6;
+      }
+
+      .layout {
+        display: block;
+        min-height: 100vh;
+      }
+
+      aside {
+        background: #111827;
+        color: #f9fafb;
+        padding: 10px 18px 8px;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+
+      .logo {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .subtitle {
+        font-size: 0.82rem;
+        color: #9ca3af;
+        margin-bottom: 18px;
+      }
+
+      nav {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      nav button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        margin: 0;
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
+
+      nav button.active {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: #f9fafb;
+      }
+
+      nav button span.tag {
+        display: inline-block;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: rgba(249, 250, 251, 0.08);
+        margin-left: 6px;
+      }
+
+      main {
+        padding: 18px 26px 40px;
+        overflow-y: auto;
+      }
+
+      .section {
+        display: none;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      .section.active {
+        display: block;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+        margin: 4px 0 10px;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+        margin: 20px 0 8px;
+      }
+
+      p {
+        margin: 4px 0 8px;
+        line-height: 1.55;
+        font-size: 0.9rem;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 4px 0 14px;
+      }
+
+      .pill {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #111827;
+        white-space: nowrap;
+      }
+
+      .card {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 14px 16px;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+        border: 1px solid #e5e7eb;
+        margin: 14px 0;
+      }
+
+      .two-column {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+        gap: 14px;
+      }
+
+      ul {
+        margin: 6px 0 10px 20px;
+        padding: 0;
+        font-size: 0.9rem;
+      }
+
+      li {
+        margin-bottom: 4px;
+      }
+
+      .label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+
+      .code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 0.78rem;
+        background: #111827;
+        color: #e5e7eb;
+        padding: 4px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin: 1px 0;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+
+      /* SVG 영역 */
+      .svg-wrapper {
+        border-radius: 10px;
+        background: radial-gradient(circle at top left, #eef2ff, #f9fafb);
+        border: 1px solid #e5e7eb;
+        padding: 10px;
+        overflow: hidden;
+      }
+
+      svg {
+        width: 100%;
+        height: auto;
+      }
+
+      .svg-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 6px;
+      }
+
+      .scenario-step {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        column-gap: 10px;
+        margin-bottom: 6px;
+      }
+
+      .scenario-step-number {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: #4f46e5;
+        color: #f9fafb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        margin-top: 3px;
+      }
+
+      .scenario-step-text {
+        font-size: 0.88rem;
+      }
+
+      .scenario-note {
+        font-size: 0.78rem;
+        color: #6b7280;
+        margin-top: 2px;
+      }
+
+      @media (max-width: 900px) {
+        aside {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+
+        main {
+          padding: 14px 14px 30px;
+        }
+
+        .two-column {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <div class="logo">PostgreSQL C2C DB Demo</div>
+        <div class="subtitle">
+          <div>“웹서비스”가 아니라</div>
+          <div>DB 설계·쿼리·트리거를 시연하는 데모</div>
+        </div>
+
+        <div class="label">섹션</div>
+        <nav>
+          <button class="active" data-target="intro">
+            1. 프로젝트 개요
+          </button>
+          <button data-target="pg">
+            2. PostgreSQL 선택 이유
+          </button>
+          <button data-target="schema">
+            3. 핵심 스키마 구조
+          </button>
+          <button data-target="scenario-sku">
+            4. 시나리오 A: SKU & 통합 검색
+            <span class="tag">StandardProduct</span>
+          </button>
+          <button data-target="scenario-ticket">
+            5. 시나리오 B: 티켓 & 암표 방지
+            <span class="tag">JSONB + Trigger</span>
+          </button>
+          <button data-target="scenario-category">
+            6. 시나리오 C: 카테고리 필터
+            <span class="tag">Recursive CTE</span>
+          </button>
+          <button data-target="scenario-seat">
+            7. 시나리오 D: 좌석(JSONB) 필터
+          </button>
+        </nav>
+
+        <div style="margin-top: 18px; font-size: 0.78rem; color: #9ca3af">
+          미팅 팁: 왼쪽에 이 페이지, 오른쪽에
+          <span class="code">Vercel + Render</span> 서비스를 띄워두고,
+          각 섹션의 시나리오를 따라가며 실제 화면을 보여주면 됩니다.
+        </div>
+      </aside>
+
+      <main>
+        <!-- 1. 프로젝트 개요 -->
+        <section id="intro" class="section active">
+          <h1>1. 프로젝트 개요</h1>
+          <p>
+            이 프로젝트의 목표는 <strong>“중고거래 서비스를 구현했다”</strong>가 아니라,<br />
+            <strong
+              >“정교하게 설계된 PostgreSQL 스키마와 SQL/PLpgSQL 로직이 기존
+              C2C 플랫폼의 한계를 어떻게 해결하는지”</strong
+            >
+            를 증명하는 것입니다.
+          </p>
+
+          <div class="pill-row">
+            <span class="pill">정규화된 11개 테이블</span>
+            <span class="pill">SKU 표준화 (StandardProduct)</span>
+            <span class="pill">JSONB 스펙 · 좌석 정보</span>
+            <span class="pill">Recursive CTE 카테고리</span>
+            <span class="pill">트리거 기반 암표 방지</span>
+          </div>
+
+          <div class="two-column">
+            <div class="card">
+              <div class="label">기존 C2C 플랫폼의 한계</div>
+              <ul>
+                <li>모든 상품 스펙을 문자열로 저장 → 정교한 필터링/검색 어려움</li>
+                <li>티켓/이벤트 같은 복합 상품을 하나의 테이블에 억지로 수용</li>
+                <li>카테고리 트리를 애플리케이션에서 계층 탐색 (N+1 쿼리)</li>
+                <li>암표 방지 같은 규칙을 앱 코드에만 의존 → DB 무결성 부족</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="label">이 프로젝트의 해법</div>
+              <ul>
+                <li>표준 제품(SKU) 테이블로 <strong>상품 표현을 표준화</strong></li>
+                <li>티켓 특수화 테이블(<span class="code">TicketDetails</span>)로
+                  <strong>정규화된 복합 모델링</strong></li>
+                <li>
+                  <span class="code">JSONB</span>, Recursive CTE, Trigger 등
+                  PostgreSQL 고급 기능 직접 활용
+                </li>
+                <li>DB가 <strong>비즈니스 규칙을 직접 강제</strong>하도록 설계</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. PostgreSQL 선택 이유 -->
+        <section id="pg" class="section">
+          <h1>2. 왜 PostgreSQL인가?</h1>
+          <p>
+            단순 CRUD 수준이 아니라,
+            <strong>DB 자체가 도메인 로직의 중심</strong>이 되도록 만들기 위해
+            PostgreSQL을 선택했습니다.
+          </p>
+
+          <div class="two-column">
+            <div class="card">
+              <h2>2-1. JSONB</h2>
+              <p>
+                <span class="code">StandardProduct.specs</span>,
+                <span class="code">TicketDetails.seat_info</span> 에
+                JSONB를 사용합니다.
+              </p>
+              <ul>
+                <li>“R석 A구역 10열”을 단순 문자열이 아니라</li>
+                <li>
+                  <span class="code"
+                    >{"grade":"R","sector":"A","row":10}</span
+                  >
+                  와 같이 구조화
+                </li>
+                <li>JSONB 연산자로 <span class="code">sector = 'A'</span> 등
+                  의미 단위 검색 가능</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h2>2-2. Recursive CTE</h2>
+              <p>
+                <span class="code">Category</span>의 계층 구조를
+                <span class="code">WITH RECURSIVE</span>로 단 한 번에 조회합니다.
+              </p>
+              <ul>
+                <li>“디지털기기” 선택 시, 하위 카테고리
+                  (스마트폰, 노트북 등)를 한 번에 포함</li>
+                <li>N+1 쿼리 없이 단일 SQL로 전체 트리 탐색</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <div class="card">
+              <h2>2-3. Trigger + PL/pgSQL</h2>
+              <p>
+                티켓 암표 방지 로직을 DB 트리거
+                (<span class="code">BEFORE INSERT ON TicketDetails</span>)로
+                구현합니다.
+              </p>
+              <ul>
+                <li>
+                  <span class="code"
+                    >Item.price ≤ TicketDetails.original_price * 1.2</span
+                  >
+                </li>
+                <li>조건 위반 시 <strong>INSERT 자체가 ROLLBACK</strong></li>
+                <li>어떤 애플리케이션이 접속하건 DB 차원에서 규칙 유지</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h2>2-4. 1:1 특수화 & BIGSERIAL</h2>
+              <ul>
+                <li>
+                  <span class="code">Item</span> ↔
+                  <span class="code">TicketDetails</span>
+                  1:1 특수화로, 티켓만의 속성을 별도 테이블로 분리
+                </li>
+                <li>
+                  모든 PK에 <span class="code">BIGSERIAL</span> 사용 →
+                  대용량 서비스에서도 안정적인 ID 관리
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 스키마 구조 -->
+        <section id="schema" class="section">
+          <h1>3. 핵심 스키마 구조 (요약)</h1>
+          <p>
+            아래 다이어그램은 이 프로젝트에서
+            <strong>직접 데모에 사용하는 핵심 테이블들</strong>만 발췌한 것입니다.
+          </p>
+
+          <div class="card">
+            <div class="svg-title">핵심 테이블 관계 (요약 ER 다이어그램)</div>
+            <div class="svg-wrapper">
+              <svg viewBox="0 0 780 320">
+                <!-- Item -->
+                <rect
+                  x="330"
+                  y="120"
+                  width="150"
+                  height="80"
+                  rx="8"
+                  fill="#eef2ff"
+                  stroke="#4f46e5"
+                />
+                <text x="405" y="142" text-anchor="middle" font-size="13">
+                  Item
+                </text>
+                <text x="338" y="162" font-size="9">item_id (PK)</text>
+                <text x="338" y="176" font-size="9">std_id (FK)</text>
+                <text x="338" y="190" font-size="9">category_id (FK)</text>
+
+                <!-- StandardProduct -->
+                <rect
+                  x="70"
+                  y="40"
+                  width="190"
+                  height="90"
+                  rx="8"
+                  fill="#ecfdf5"
+                  stroke="#16a34a"
+                />
+                <text x="165" y="62" text-anchor="middle" font-size="13">
+                  StandardProduct
+                </text>
+                <text x="78" y="80" font-size="9">std_id (PK)</text>
+                <text x="78" y="94" font-size="9">product_code</text>
+                <text x="78" y="108" font-size="9">model_name</text>
+                <text x="78" y="122" font-size="9">specs (JSONB)</text>
+
+                <!-- Category -->
+                <rect
+                  x="70"
+                  y="190"
+                  width="190"
+                  height="80"
+                  rx="8"
+                  fill="#fef3c7"
+                  stroke="#f59e0b"
+                />
+                <text x="165" y="212" text-anchor="middle" font-size="13">
+                  Category
+                </text>
+                <text x="78" y="230" font-size="9">category_id (PK)</text>
+                <text x="78" y="244" font-size="9">parent_category_id (FK)</text>
+
+                <!-- Event -->
+                <rect
+                  x="540"
+                  y="40"
+                  width="170"
+                  height="70"
+                  rx="8"
+                  fill="#eff6ff"
+                  stroke="#2563eb"
+                />
+                <text x="625" y="62" text-anchor="middle" font-size="13">
+                  Event
+                </text>
+                <text x="548" y="80" font-size="9">event_id (PK)</text>
+                <text x="548" y="94" font-size="9">event_name</text>
+
+                <!-- EventOption -->
+                <rect
+                  x="540"
+                  y="140"
+                  width="170"
+                  height="80"
+                  rx="8"
+                  fill="#eff6ff"
+                  stroke="#2563eb"
+                />
+                <text x="625" y="162" text-anchor="middle" font-size="13">
+                  EventOption
+                </text>
+                <text x="548" y="180" font-size="9">event_option_id (PK)</text>
+                <text x="548" y="194" font-size="9">event_id (FK → Event)</text>
+
+                <!-- TicketDetails -->
+                <rect
+                  x="330"
+                  y="230"
+                  width="190"
+                  height="80"
+                  rx="8"
+                  fill="#fef2f2"
+                  stroke="#dc2626"
+                />
+                <text x="425" y="252" text-anchor="middle" font-size="13">
+                  TicketDetails
+                </text>
+                <text x="338" y="270" font-size="9">item_id (PK &amp; FK → Item)</text>
+                <text x="338" y="284" font-size="9">
+                  event_option_id (FK → EventOption)
+                </text>
+                <text x="338" y="298" font-size="9">seat_info (JSONB)</text>
+
+                <!-- Relations -->
+                <!-- StandardProduct -> Item -->
+                <line
+                  x1="260"
+                  y1="90"
+                  x2="330"
+                  y2="150"
+                  stroke="#16a34a"
+                  stroke-width="1.2"
+                  marker-end="url(#arrow)"
+                />
+                <text x="290" y="100" font-size="9">1 : N</text>
+
+                <!-- Category -> Item -->
+                <line
+                  x1="260"
+                  y1="220"
+                  x2="330"
+                  y2="180"
+                  stroke="#f59e0b"
+                  stroke-width="1.2"
+                  marker-end="url(#arrow)"
+                />
+                <text x="290" y="210" font-size="9">1 : N</text>
+
+                <!-- Category self -->
+                <path
+                  d="M 240 200 C 270 160 270 260 240 240"
+                  fill="none"
+                  stroke="#f59e0b"
+                  stroke-width="1"
+                />
+                <text x="275" y="205" font-size="9">Hierarchy</text>
+
+                <!-- Event -> EventOption -->
+                <line
+                  x1="625"
+                  y1="110"
+                  x2="625"
+                  y2="140"
+                  stroke="#2563eb"
+                  stroke-width="1.2"
+                  marker-end="url(#arrow)"
+                />
+                <text x="633" y="128" font-size="9">1 : N</text>
+
+                <!-- EventOption -> TicketDetails -->
+                <line
+                  x1="625"
+                  y1="220"
+                  x2="520"
+                  y2="260"
+                  stroke="#2563eb"
+                  stroke-width="1.2"
+                  marker-end="url(#arrow)"
+                />
+                <text x="575" y="232" font-size="9">1 : N</text>
+
+                <!-- Item -> TicketDetails (1:1) -->
+                <line
+                  x1="405"
+                  y1="200"
+                  x2="405"
+                  y2="230"
+                  stroke="#dc2626"
+                  stroke-width="1.2"
+                  marker-end="url(#arrow)"
+                />
+                <text x="413" y="218" font-size="9">1 : 1</text>
+
+                <!-- Arrow marker -->
+                <defs>
+                  <marker
+                    id="arrow"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="6"
+                    refY="3"
+                    orient="auto"
+                    markerUnits="strokeWidth"
+                  >
+                    <path d="M0,0 L0,6 L6,3 z" fill="#4b5563" />
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+            <p class="hint">
+              설명 시에는 이 다이어그램을 보여주고, 오른쪽 실서비스 화면에서
+              각 테이블이 언제 사용되는지 연결해서 설명하면 좋습니다.
+            </p>
+          </div>
+        </section>
+
+        <!-- 4. 시나리오 A: SKU & 통합 검색 -->
+        <section id="scenario-sku" class="section">
+          <h1>4. 시나리오 A: SKU 기반 등록 & 통합 검색</h1>
+          <p>
+            <strong>목표:</strong> SKU 표준화 테이블과 통합 검색이 어떻게 동작하는지
+            실제 화면과 함께 설명합니다.
+          </p>
+
+          <div class="card">
+            <div class="label">데모 플로우</div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">1</div>
+              <div class="scenario-step-text">
+                상품 등록 페이지에서 <strong>“제품 코드” 입력창</strong>에
+                <span class="code">SM-</span> 을 타이핑합니다.
+                <div class="scenario-note">
+                  오른쪽 화면: 자동완성 드롭다운에서 Z플립5 / 버즈2가 뜨는지 확인
+                  <span class="code">GET /api/products/autocomplete?q=SM-</span>
+                </div>
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">2</div>
+              <div class="scenario-step-text">
+                <strong>“SM-F731N / 갤럭시 Z플립5”</strong> 를 선택하고,
+                제목/가격을 입력 후 등록합니다.
+                <div class="scenario-note">
+                  백엔드: <span class="code">std_id</span>가
+                  <span class="code">Item</span>에 FK로 저장됩니다.
+                </div>
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">3</div>
+              <div class="scenario-step-text">
+                메인 페이지 검색창에 <span class="code">"플립"</span>을 입력해
+                검색합니다.
+                <div class="scenario-note">
+                  <span class="code"
+                    >GET /api/items?search=플립 (Item.title OR
+                    StandardProduct.model_name)</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="label">이 시나리오로 보여줄 것</div>
+            <ul>
+              <li>SKU/모델 정보는 <span class="code">StandardProduct</span>에 한 번만 저장</li>
+              <li>
+                <span class="code">Item</span>은 여러 판매자의 매물을
+                <strong>동일 SKU에 연결</strong>하는 역할
+              </li>
+              <li>
+                검색 시 단순 제목 문자열이 아닌,
+                <span class="code">model_name</span>까지 함께 검색하는
+                <strong>통합 검색</strong>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 5. 시나리오 B: 티켓 & 암표 방지 -->
+        <section id="scenario-ticket" class="section">
+          <h1>5. 시나리오 B: 티켓 등록 & 암표 방지 (트리거)</h1>
+          <p>
+            <strong>목표:</strong>
+            티켓 특수화 테이블과 JSONB, 트리거를 통해
+            <strong>DB가 직접 비즈니스 규칙을 강제</strong>하는 모습을 보여줍니다.
+          </p>
+
+          <div class="card">
+            <div class="label">데모 플로우 (성공 케이스)</div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">1</div>
+              <div class="scenario-step-text">
+                티켓 등록 탭에서 이벤트를
+                <strong>“싸이 흠뻑쇼 2025”</strong> 로 선택 → 회차를 서울 7/10로 선택합니다.
+                <div class="scenario-note">
+                  <span class="code">GET /api/events</span>,<span class="code"
+                    >/api/events/:id/options</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">2</div>
+              <div class="scenario-step-text">
+                좌석 정보(JSONB)를 입력합니다. 예)
+                <span class="code"
+                  >{"grade":"R","sector":"B","row":10,"number":10}</span
+                >
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">3</div>
+              <div class="scenario-step-text">
+                <strong>원가</strong>
+                <span class="code">130000</span>,
+                <strong>판매가</strong>
+                <span class="code">150000</span> (115%) 로 등록합니다.
+                <div class="scenario-note">
+                  트리거 통과 → <span class="code">Item + TicketDetails</span> 둘 다 INSERT
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="label">데모 플로우 (실패 케이스: 암표)</div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">4</div>
+              <div class="scenario-step-text">
+                같은 이벤트/좌석 정보로,
+                <strong>원가 130000, 판매가 200000</strong> (120% 초과)로 등록을 시도합니다.
+                <div class="scenario-note">
+                  응답: HTTP 400 + 트리거 오류 메시지<br />
+                  <span class="code"
+                    >Price (...) exceeds 120% of the original price (...)</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="label">이 시나리오로 보여줄 것</div>
+            <ul>
+              <li>
+                티켓은 <span class="code">Item</span>의
+                <strong>특수화</strong>로,
+                <span class="code">TicketDetails</span>에 전용 속성을 분리
+              </li>
+              <li>
+                가격 제한 로직은 Node.js가 아닌
+                <strong>PostgreSQL 트리거</strong>가 책임
+              </li>
+              <li>
+                규칙 위반 시, 일부만 저장되는 것이 아니라
+                <strong>트랜잭션 전체가 롤백</strong>된다는 점
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 6. 시나리오 C: 카테고리 필터 -->
+        <section id="scenario-category" class="section">
+          <h1>6. 시나리오 C: 카테고리 필터 (Recursive CTE)</h1>
+          <p>
+            <strong>목표:</strong> 카테고리 트리를
+            <strong>단일 재귀 쿼리</strong>로 처리하는 패턴을 보여줍니다.
+          </p>
+
+          <div class="card">
+            <div class="label">데모 플로우</div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">1</div>
+              <div class="scenario-step-text">
+                화면의 카테고리 목록에서
+                <strong>“디지털기기”</strong>를 클릭합니다.
+                <div class="scenario-note">
+                  <span class="code">category_id = 1</span>
+                </div>
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">2</div>
+              <div class="scenario-step-text">
+                오른쪽 상품 목록에는 “디지털기기”뿐 아니라
+                <strong>“스마트폰”, “노트북”</strong> 카테고리의 상품들도 함께 보입니다.
+                <div class="scenario-note">
+                  <span class="code">GET /api/items?category=1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="label">백엔드 핵심 SQL (개념 설명용)</div>
+            <p class="hint">
+              실제 코드는 Node.js에서 문자열로 구성되지만, 설명 시에는 “이런
+              구조의 재귀 CTE를 사용했다”고 개념만 보여주면 됩니다.
+            </p>
+            <p class="code">
+              WITH RECURSIVE category_tree AS (<br />
+              &nbsp;&nbsp;SELECT category_id, parent_category_id<br />
+              &nbsp;&nbsp;FROM category<br />
+              &nbsp;&nbsp;WHERE category_id = :root_id<br />
+              &nbsp;&nbsp;UNION ALL<br />
+              &nbsp;&nbsp;SELECT c.category_id, c.parent_category_id<br />
+              &nbsp;&nbsp;FROM category c<br />
+              &nbsp;&nbsp;JOIN category_tree ct ON c.parent_category_id =
+              ct.category_id<br />
+              )<br />
+              SELECT * FROM item WHERE category_id IN (SELECT category_id FROM
+              category_tree);
+            </p>
+          </div>
+        </section>
+
+        <!-- 7. 시나리오 D: 좌석(JSONB) 필터 -->
+        <section id="scenario-seat" class="section">
+          <h1>7. 시나리오 D: 좌석(JSONB) 필터</h1>
+          <p>
+            <strong>목표:</strong> 좌석 정보가 문자열이 아니라
+            <span class="code">JSONB</span>로 저장되어 있기 때문에 가능한
+            <strong>정확한 좌석 필터링</strong>을 보여줍니다.
+          </p>
+
+          <div class="card">
+            <div class="label">데모 플로우</div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">1</div>
+              <div class="scenario-step-text">
+                특정 공연(예: 싸이 흠뻑쇼 7/10 서울)의 매물만 보이도록 필터링합니다.
+                <div class="scenario-note">
+                  <span class="code"
+                    >GET /api/items?event_option_id=10</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">2</div>
+              <div class="scenario-step-text">
+                좌석 상세 필터에서
+                <strong>구역 = "A"</strong> 를 입력합니다.
+                <div class="scenario-note">
+                  <span class="code"
+                    >GET /api/items?event_option_id=10&seat_sector=A</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="scenario-step">
+              <div class="scenario-step-number">3</div>
+              <div class="scenario-step-text">
+                목록에는 <span class="code">sector = "A"</span> 인 매물만 남고,
+                다른 구역(C, D 등)은 모두 제외됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="label">백엔드 핵심 로직 (개념 설명용)</div>
+            <p class="code">
+              SELECT ...<br />
+              FROM item i<br />
+              LEFT JOIN ticket_details td ON i.item_id = td.item_id<br />
+              WHERE td.event_option_id = :event_option_id<br />
+              &nbsp;&nbsp;AND td.seat_info -&gt;&gt; 'sector' = :seat_sector;
+            </p>
+            <p class="hint">
+              문자열 LIKE 검색이 아닌,
+              <span class="code">JSONB</span> 컬럼 내부의 필드를 직접 비교한다는
+              점을 강조하면 좋습니다.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const buttons = document.querySelectorAll("nav button");
+      const sections = document.querySelectorAll(".section");
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.getAttribute("data-target");
+
+          buttons.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          sections.forEach((sec) => {
+            if (sec.id === targetId) {
+              sec.classList.add("active");
+            } else {
+              sec.classList.remove("active");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+  </html>
+
+

@@ -224,11 +224,23 @@ function ItemForm() {
     setMessage('');
 
     try {
+      // 카테고리 ID 결정: 티켓 모드는 자동으로 '티켓' 카테고리 사용
+      let categoryId = null;
+      if (mode === 'ticket') {
+        const ticketCategory =
+          categories.find((c) => c.category_name === '티켓') ||
+          categories.find((c) => c.category_name.includes('티켓')) ||
+          null;
+        categoryId = ticketCategory ? ticketCategory.category_id : 3; // fallback: 3
+      } else if (form.categoryId) {
+        categoryId = Number(form.categoryId);
+      }
+
       const payload = {
         seller_id: 1,
         title: form.title,
         price: Number(form.price),
-        category_id: form.categoryId ? Number(form.categoryId) : null,
+        category_id: categoryId,
       };
 
       if (mode === 'sku') {
@@ -296,22 +308,24 @@ function ItemForm() {
           />
         </label>
 
-        <label>
-          카테고리
-          <select
-            value={form.categoryId}
-            onChange={(e) =>
-              setForm({ ...form, categoryId: e.target.value || '' })
-            }
-          >
-            <option value="">선택 안 함</option>
-            {categories.map((c) => (
-              <option key={c.category_id} value={c.category_id}>
-                {c.category_id}. {c.category_name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {mode !== 'ticket' && (
+          <label>
+            카테고리
+            <select
+              value={form.categoryId}
+              onChange={(e) =>
+                setForm({ ...form, categoryId: e.target.value || '' })
+              }
+            >
+              <option value="">선택 안 함</option>
+              {categories.map((c) => (
+                <option key={c.category_id} value={c.category_id}>
+                  {c.category_id}. {c.category_name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {mode === 'sku' && (
           <div className="sku-section">
