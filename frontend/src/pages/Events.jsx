@@ -61,14 +61,14 @@ export default function Events() {
       try {
         const [options, ticketData] = await Promise.all([
           fetchEventOptions(selectedEvent.event_id),
-          fetchItems({ type: 'ticket', limit: 100 })
+          fetchItems({ type: 'ticket', limit: 500 })
         ]);
         setEventOptions(options);
 
-        // 해당 이벤트의 티켓만 필터링
-        const eventOptionIds = options.map(o => o.event_option_id);
+        // 해당 이벤트의 티켓만 필터링 (문자열로 변환하여 비교)
+        const eventOptionIds = options.map(o => String(o.event_option_id));
         const filteredTickets = ticketData.items.filter(item =>
-          eventOptionIds.includes(item.event_option_id)
+          eventOptionIds.includes(String(item.event_option_id))
         );
         setTickets(filteredTickets);
       } catch (err) {

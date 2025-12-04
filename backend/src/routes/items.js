@@ -86,7 +86,7 @@ router.get('/', async (req, res) => {
 
   // 페이지네이션 파라미터
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 20));
   const offset = (page - 1) * limit;
 
   // 전체 개수 쿼리
