@@ -32,7 +32,24 @@ export async function autocompleteProducts(q) {
 // ========== Items ==========
 export async function fetchItems(params = {}) {
   const res = await api.get('/items', { params });
-  return res.data; // { items: [], pagination: {} }
+  const data = res.data;
+
+  // 백엔드가 배열 형태로만 응답하는 경우를 대비한 호환 처리
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      pagination: {
+        page: 1,
+        totalPages: 1,
+        total: data.length,
+        hasMore: false,
+        limit: data.length,
+      },
+    };
+  }
+
+  // 기본: { items: [], pagination: {} } 형태
+  return data;
 }
 
 export async function fetchItem(itemId) {
