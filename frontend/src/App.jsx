@@ -31,16 +31,28 @@ function NavBar({ currentUserId, setCurrentUserId, users, darkMode, setDarkMode 
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
             홈
           </Link>
-          <Link to="/events" className={`nav-link ${location.pathname === '/events' ? 'active' : ''}`}>
+          <Link
+            to="/events"
+            className={`nav-link ${location.pathname === '/events' ? 'active' : ''}`}
+          >
             공연
           </Link>
-          <Link to="/sell" className={`nav-link ${location.pathname === '/sell' ? 'active' : ''}`}>
+          <Link
+            to="/sell"
+            className={`nav-link ${location.pathname === '/sell' ? 'active' : ''}`}
+          >
             판매하기
           </Link>
-          <Link to="/chat" className={`nav-link ${location.pathname === '/chat' ? 'active' : ''}`}>
+          <Link
+            to="/chat"
+            className={`nav-link ${location.pathname === '/chat' ? 'active' : ''}`}
+          >
             채팅
           </Link>
-          <Link to="/mypage" className={`nav-link ${location.pathname.startsWith('/mypage') ? 'active' : ''}`}>
+          <Link
+            to="/mypage"
+            className={`nav-link ${location.pathname.startsWith('/mypage') ? 'active' : ''}`}
+          >
             마이페이지
           </Link>
         </div>
@@ -55,7 +67,8 @@ function NavBar({ currentUserId, setCurrentUserId, users, darkMode, setDarkMode 
           </button>
           <div className="user-profile-select">
             <span className="user-nickname">
-              {users.find(u => String(u.user_id) === String(currentUserId))?.username || '로그인'}
+              {users.find((u) => String(u.user_id) === String(currentUserId))?.username ||
+                '로그인'}
             </span>
             <select
               value={currentUserId || ''}
@@ -124,11 +137,11 @@ export default function App() {
       try {
         const data = await fetchUsers();
         setUsers(data);
-        // 기본 사용자 선택 (데모용)
         if (data.length > 0) {
           setCurrentUserId(data[0].user_id);
         }
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Failed to load users', err);
       }
     }
@@ -147,3 +160,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+

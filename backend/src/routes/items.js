@@ -12,9 +12,7 @@ function buildItemsFilterQuery(query) {
   if (query.search) {
     params.push(`%${query.search}%`);
     const idx = params.length;
-    whereClauses.push(
-      `(i.title ILIKE $${idx} OR sp.model_name ILIKE $${idx})`,
-    );
+    whereClauses.push(`(i.title ILIKE $${idx} OR sp.model_name ILIKE $${idx})`);
   }
 
   // category: use recursive CTE to get all descendant categories
@@ -41,7 +39,7 @@ function buildItemsFilterQuery(query) {
     }
   }
 
-  // event_option_id + seat_sector (JSONB)
+  // event_option_id + seat filters (JSONB)
   if (query.event_option_id) {
     const eventOptionId = Number(query.event_option_id);
     if (Number.isInteger(eventOptionId)) {
@@ -59,9 +57,9 @@ function buildItemsFilterQuery(query) {
 
   // type: 'ticket' or 'product'
   if (query.type === 'ticket') {
-    whereClauses.push(`td.event_option_id IS NOT NULL`);
+    whereClauses.push('td.event_option_id IS NOT NULL');
   } else if (query.type === 'product') {
-    whereClauses.push(`td.event_option_id IS NULL`);
+    whereClauses.push('td.event_option_id IS NULL');
   }
 
   // status: 'ON_SALE', 'RESERVED', 'SOLD'
@@ -69,6 +67,25 @@ function buildItemsFilterQuery(query) {
     params.push(query.status);
     const idx = params.length;
     whereClauses.push(`i.status = $${idx}`);
+  }
+
+  // JSONB seat filters: row / number
+  if (query.seat_row) {
+    const seatRow = Number(query.seat_row);
+    if (Number.isInteger(seatRow)) {
+      params.push(seatRow);
+      const idx = params.length;
+      whereClauses.push(`(td.seat_info ->> 'row')::int = $${idx}`);
+    }
+  }
+
+  if (query.seat_number) {
+    const seatNumber = Number(query.seat_number);
+    if (Number.isInteger(seatNumber)) {
+      params.push(seatNumber);
+      const idx = params.length;
+      whereClauses.push(`(td.seat_info ->> 'number')::int = $${idx}`);
+    }
   }
 
   const whereSql =
@@ -79,7 +96,9 @@ function buildItemsFilterQuery(query) {
 
 // GET /api/items
 // - 기본: 모든 Item
-// - ?search=, ?category=, ?event_option_id=, ?seat_sector=
+// - ?search=, ?category=, ?event_option_id=, ?seat_sector=, ?seat_row=, ?seat_number=
+// - ?type=ticket|product
+// - ?status=ON_SALE|RESERVED|SOLD
 // - ?page=1&limit=20 (페이지네이션)
 router.get('/', async (req, res) => {
   const { whereSql, params } = buildItemsFilterQuery(req.query);
@@ -129,7 +148,7 @@ router.get('/', async (req, res) => {
       db.query(dataSql, [...params, limit, offset]),
     ]);
 
-    const total = parseInt(countResult.rows[0].total);
+    const total = parseInt(countResult.rows[0].total, 10);
     const totalPages = Math.ceil(total / limit);
 
     res.json({
@@ -174,7 +193,7 @@ router.get('/:id', async (req, res) => {
       LEFT JOIN event_option eo ON td.event_option_id = eo.event_option_id
       LEFT JOIN event e ON eo.event_id = e.event_id
       WHERE i.item_id = $1`,
-      [itemId]
+      [itemId],
     );
 
     if (result.rows.length === 0) {
@@ -183,6 +202,7 @@ router.get('/:id', async (req, res) => {
 
     return res.json(result.rows[0]);
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching item', err);
     return res.status(500).json({ error: 'Failed to fetch item' });
   }
@@ -203,8 +223,8 @@ router.patch('/:id/status', async (req, res) => {
 
   try {
     const result = await db.query(
-      `UPDATE item SET status = $1 WHERE item_id = $2 RETURNING *`,
-      [status, itemId]
+      'UPDATE item SET status = $1 WHERE item_id = $2 RETURNING *',
+      [status, itemId],
     );
 
     if (result.rows.length === 0) {
@@ -213,6 +233,7 @@ router.patch('/:id/status', async (req, res) => {
 
     return res.json(result.rows[0]);
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('Error updating item status', err);
     return res.status(500).json({ error: 'Failed to update item status' });
   }
