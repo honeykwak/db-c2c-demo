@@ -33,16 +33,25 @@ const DESCRIPTIONS = [
     '구매 후 몇 번 안썼습니다.',
 ];
 
-const BRANDS = {
-    smartphone: ['Samsung', 'Apple', 'Google', 'Xiaomi'],
-    laptop: ['Apple', 'Samsung', 'LG', 'Lenovo', 'Dell', 'HP'],
-    audio: ['Sony', 'Bose', 'Apple', 'Samsung', 'JBL'],
-};
-
-const MODELS = {
-    smartphone: ['Galaxy S24', 'Galaxy S23 Ultra', 'Galaxy Z Flip5', 'Galaxy Z Fold5', 'iPhone 15 Pro', 'iPhone 14', 'iPhone 13 mini', 'Pixel 8', 'Redmi Note 12'],
-    laptop: ['MacBook Pro M3', 'MacBook Air M2', 'Galaxy Book 4 Pro', 'LG Gram 17', 'ThinkPad X1', 'XPS 15', 'Spectre x360'],
-    audio: ['WH-1000XM5', 'WF-1000XM5', 'AirPods Pro 2', 'Galaxy Buds2 Pro', 'Bose QC Ultra', 'JBL Flip 6'],
+const REALISTIC_PRODUCTS = {
+    smartphone: [
+        { brand: 'Samsung', models: ['Galaxy S24', 'Galaxy S23 Ultra', 'Galaxy Z Flip5', 'Galaxy Z Fold5'] },
+        { brand: 'Apple', models: ['iPhone 15 Pro', 'iPhone 14', 'iPhone 13 mini'] },
+        { brand: 'Google', models: ['Pixel 8', 'Pixel 7 Pro'] },
+        { brand: 'Xiaomi', models: ['Redmi Note 12', '13T Pro'] }
+    ],
+    laptop: [
+        { brand: 'Apple', models: ['MacBook Pro M3', 'MacBook Air M2', 'MacBook Pro 16'] },
+        { brand: 'Samsung', models: ['Galaxy Book 4 Pro', 'Galaxy Book 3 Ultra'] },
+        { brand: 'LG', models: ['Gram 17', 'Gram 16 360'] },
+        { brand: 'Lenovo', models: ['ThinkPad X1 Carbon', 'Legion 5 Pro'] }
+    ],
+    audio: [
+        { brand: 'Sony', models: ['WH-1000XM5', 'WF-1000XM5'] },
+        { brand: 'Apple', models: ['AirPods Pro 2', 'AirPods Max'] },
+        { brand: 'Samsung', models: ['Galaxy Buds2 Pro'] },
+        { brand: 'Bose', models: ['QC Ultra Headphones', 'QC Earbuds II'] }
+    ]
 };
 
 const CONCERT_ARTISTS = ['아이유', '싸이', '임영웅', '성시경', '뉴진스', 'IVE', '세븐틴', 'BTS', '블랙핑크', 'Day6'];
@@ -155,10 +164,14 @@ async function main() {
         const stdValues = [];
         let stdCount = 3; // Started from 3
         for (let i = 0; i < TARGET_PRODUCTS; i++) {
-            const catKeys = Object.keys(BRANDS);
-            const catKey = pick(catKeys);
-            const brand = pick(BRANDS[catKey]);
-            const model = pick(MODELS[catKey]);
+            const catKeys = Object.keys(REALISTIC_PRODUCTS);
+            const catKey = pick(catKeys); // e.g., 'smartphone'
+
+            // Pick a valid Brand-Model pair
+            const brandGroup = pick(REALISTIC_PRODUCTS[catKey]);
+            const brand = brandGroup.brand;
+            const model = pick(brandGroup.models);
+
             const code = `${brand.substring(0, 2).toUpperCase()}-${randomInt(1000, 9999)}-${randomInt(10, 99)}`; // Fake SKU
             const spec = JSON.stringify({ color: pick(['Black', 'White', 'Silver', 'Graphite']), year: randomInt(2021, 2024) });
 

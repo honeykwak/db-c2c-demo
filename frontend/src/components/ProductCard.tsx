@@ -13,15 +13,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const deviceDetails = !isTicket ? (product.details as DeviceDetails) : null;
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
     return `${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
   return (
     <Link to={`/product/${product.id}`} className="group block h-full">
       <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
-        {/* Image Section */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
+        {/* Image Section - Reduced height as requested */}
+        <div className="relative aspect-[3/2] overflow-hidden bg-gray-100">
           <img
             src={product.imageUrl}
             alt={product.title}
