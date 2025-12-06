@@ -85,6 +85,50 @@ function buildItemsFilterQuery(query) {
   return { whereSql, params };
 }
 
+// GET /api/items/:id
+router.get('/:id', async (req, res) => {
+  const itemId = req.params.id;
+
+  const sql = `
+    SELECT
+      i.item_id,
+      i.title,
+      i.price,
+      i.status,
+      i.category_id,
+      i.std_id,
+      i.description, -- Include description
+      i.seller_id,   -- Include seller_id
+      sp.product_code,
+      sp.model_name,
+      sp.brand_name,
+      sp.specs,      -- Include Specs
+      td.event_option_id,
+      td.seat_info,
+      td.original_price,
+      eo.venue,      -- Join Event Option for venue
+      eo.event_datetime, -- Join Event Option for date
+      e.artist_name  -- Join Event for artist
+    FROM item i
+    LEFT JOIN standard_product sp ON i.std_id = sp.std_id
+    LEFT JOIN ticket_details td ON i.item_id = td.item_id
+    LEFT JOIN event_option eo ON td.event_option_id = eo.event_option_id
+    LEFT JOIN event e ON eo.event_id = e.event_id
+    WHERE i.item_id = $1
+  `;
+
+  try {
+    const result = await db.query(sql, [itemId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching item by ID', err);
+    res.status(500).json({ error: 'Failed to fetch item' });
+  }
+});
+
 // GET /api/items
 // - 기본: 모든 Item
 // - ?search=, ?category=, ?event_option_id=, ?seat_sector=, ?seat_row=, ?seat_number=
@@ -111,8 +155,7 @@ router.get('/', async (req, res) => {
     LEFT JOIN ticket_details td
       ON i.item_id = td.item_id
     ${whereSql}
-    ORDER BY i.item_id
-    LIMIT 200;
+    ORDER BY i.item_id;
   `;
 
   try {
