@@ -14,6 +14,10 @@ export const Sell: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSku, setSelectedSku] = useState<SkuOption | null>(null);
 
+    // Price State for Scenario
+    const [price, setPrice] = useState<string>('');
+    const [originalPrice, setOriginalPrice] = useState<string>('');
+
     // Handlers
     const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => Math.max(0, prev - 1));
@@ -22,16 +26,16 @@ export const Sell: React.FC = () => {
         try {
             const payload: any = {
                 title: selectedSku ? `${selectedSku.brand} ${selectedSku.model}` : '판매 상품',
-                price: 100000, // Mock price for demo
+                price: Number(price),
                 seller_id: 1,
-                category_id: selectedType === CategoryType.TICKET ? 7 : 4, // Simple map
+                category_id: selectedType === CategoryType.TICKET ? 7 : 4,
             };
 
             if (selectedType === CategoryType.TICKET) {
                 payload.ticket = {
                     event_option_id: 1, // Mock
                     seat_info: JSON.stringify({ grade: 'VIP', sector: 'A', row: 1, number: 1 }),
-                    original_price: 90000
+                    original_price: Number(originalPrice)
                 };
             }
 
@@ -202,6 +206,28 @@ export const Sell: React.FC = () => {
                                                 </button>
                                             ))}
                                         </div>
+                                    </div>
+
+                                    {/* Price Inputs for Scalping Scenario */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">정가 (Original Price)</label>
+                                        <input
+                                            type="number"
+                                            value={originalPrice}
+                                            onChange={(e) => setOriginalPrice(e.target.value)}
+                                            placeholder="예: 100000"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">판매가 (Selling Price)</label>
+                                        <input
+                                            type="number"
+                                            value={price}
+                                            onChange={(e) => setPrice(e.target.value)}
+                                            placeholder="예: 200000"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 outline-none font-bold text-indigo-600"
+                                        />
                                     </div>
                                 </div>
                             )}
