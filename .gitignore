@@ -24,4 +24,11 @@ build/
 # MacOS
 .DS_Store
 
+# Sensitive/Private
+데이터베이스 면담.txt
+
+# Backups/Temp
+frontend_backup/
+*_script.md
+
 
