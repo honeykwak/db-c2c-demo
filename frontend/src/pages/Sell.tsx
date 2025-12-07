@@ -18,6 +18,9 @@ export const Sell: React.FC = () => {
     const [price, setPrice] = useState<string>('');
     const [originalPrice, setOriginalPrice] = useState<string>('');
 
+    // Seat Zone State
+    const [selectedZone, setSelectedZone] = useState<string>('A구역');
+
     // Handlers
     const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => Math.max(0, prev - 1));
@@ -34,7 +37,7 @@ export const Sell: React.FC = () => {
             if (selectedType === CategoryType.TICKET) {
                 payload.ticket = {
                     event_option_id: 1, // Mock
-                    seat_info: JSON.stringify({ grade: 'VIP', sector: 'A', row: 1, number: 1 }),
+                    seat_info: JSON.stringify({ grade: 'VIP', sector: selectedZone, row: 1, number: 1 }),
                     original_price: Number(originalPrice)
                 };
             }
@@ -200,9 +203,15 @@ export const Sell: React.FC = () => {
                                     <div className="col-span-2 bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300 flex flex-col items-center justify-center gap-2 mt-2">
                                         <div className="text-xs text-gray-400 font-medium">좌석 구역을 선택해주세요</div>
                                         <div className="flex gap-2">
-                                            {['A구역', 'B구역', 'C구역', '플로어'].map(zone => (
-                                                <button key={zone} className="px-3 py-1 rounded bg-white border border-gray-200 text-sm hover:border-indigo-500 hover:text-indigo-600 transition-colors">
-                                                    {zone}
+                                            {['A', 'B', 'C', 'Floor'].map(zone => (
+                                                <button
+                                                    key={zone}
+                                                    onClick={() => setSelectedZone(zone)}
+                                                    className={`px-3 py-1 rounded border text-sm transition-colors ${selectedZone === zone
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white'
+                                                        : 'bg-white border-gray-200 hover:border-indigo-500 hover:text-indigo-600'}`
+                                                    }>
+                                                    {zone}구역
                                                 </button>
                                             ))}
                                         </div>
